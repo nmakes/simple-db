@@ -1,3 +1,9 @@
+'''
+	Copyright (c) 2017 Naveen Venkat
+	nav.naveenvenkat@gmail.com
+	https://github.com/nmakes/simple-db
+'''
+
 class Atomizer:
 
 	indent = "    "
