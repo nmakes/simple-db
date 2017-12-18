@@ -4,6 +4,8 @@
 	https://github.com/nmakes/simple-db
 '''
 
+from os import path
+
 class Beautifier:
 
 	indent = "    "
@@ -137,13 +139,47 @@ class Beautifier:
 		return file_string
 
 	@staticmethod
-	def load(file_object):
-		return eval(Beautifier.readFile(file_object))
+	def load(file_name):
+		file_object = open(file_name, 'r')
+		data = eval(Beautifier.readFile(file_object))
+		file_object.close()
+		return data
 
 	@staticmethod
-	def dump(obj, file_object):
+	def dump(obj, file_name):
+
+		if path.isfile(file_name):
+			inp = raw_input("WARNING: "  + file_name + " already exists. Do you want to overwrite (dump)? y/n: ")
+
+			if inp.strip()[0]=='y' or inp.strip()[0]=='Y':
+				pass
+			else:
+				print "DUMP CANCELLED!"
+				return False
+
+		file_object = open(file_name, 'w')
 		bObj = Beautifier.beautify(obj)
 		file_object.write(bObj)
+		file_object.close()
+		return True
+
+
+class SimpleDB(dict):
+
+	def __init__(self, d={}, path=None):
+		self = d
+		self.path = path
+
+	def setPath(path):
+		self.path = path
+
+	def push(key, value):
+		if key in self.keys():
+			self[key] = value
+
+	def pull():
+		pass
+		# read from file and load database into self
 
 
 a = Beautifier.beautify(1)
@@ -174,12 +210,8 @@ A = {'age': 27,
              }
 }
 
-# fil = open("demo.sdb", 'w+')
-# Beautifier.write(A, fil)
-# fil.close()
+Beautifier.dump(A, "demo.sdb")
 
-sdb = Beautifier.load(open("demo.sdb"))
+sdb = Beautifier.load("demo.sdb")
 print sdb
 print type(sdb)
-
-Beautifier.dump(sdb, open("demo2.sdb",'w'))
