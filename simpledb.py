@@ -4,7 +4,7 @@
 	https://github.com/nmakes/simple-db
 '''
 
-class Atomizer:
+class Beautifier:
 
 	indent = "    "
 
@@ -19,37 +19,40 @@ class Atomizer:
 	list_begin = "["
 	list_end = "]"
 
+	tuple_begin = "("
+	tuple_end = ")"
+
 	@staticmethod
-	def atomize(val, indent_level=1):
+	def beautify(val, indent_level=1):
 		t = type(val)
 
 		# string
 		if t==str:
 			
-			return Atomizer.str_begin + str(val) + Atomizer.str_end
+			return Beautifier.str_begin + str(val) + Beautifier.str_end
 
 		# basic numeric types
 		elif t==int or t==float or t==long:
 
-			return val
+			return str(val)
 
 		# complex number
 		elif t==complex:
-			return "(" + str(Atomizer.atomize(val.real)) + "+" + str(Atomizer.atomize(val.imag)) + "J)"
+			return "(" + str(Beautifier.beautify(val.real)) + "+" + str(Beautifier.beautify(val.imag)) + "J)"
 
 		# list
 		elif t==list:
 			
-			s = Atomizer.list_begin
+			s = Beautifier.list_begin
 			l = len(val)
 
 			for i in xrange(l):
 				if i<l-1:
-					s += str(Atomizer.atomize(val[i])) + Atomizer.list_sep
+					s += str(Beautifier.beautify(val[i])) + Beautifier.list_sep
 				else:
-					s += str(Atomizer.atomize(val[i]))
+					s += str(Beautifier.beautify(val[i]))
 
-			s += Atomizer.list_end
+			s += Beautifier.list_end
 
 			return s
 
@@ -62,8 +65,8 @@ class Atomizer:
 				s = ""
 
 			for i in range(indent_level-1):
-				s += Atomizer.indent
-			s += Atomizer.dict_begin
+				s += Beautifier.indent
+			s += Beautifier.dict_begin
 			s += "\n"
 
 			keys = val.keys()
@@ -74,21 +77,21 @@ class Atomizer:
 				key = keys[i]
 
 				if i<l-1:
-					key_a = str(Atomizer.atomize(key, indent_level+1))
-					val_a = str(Atomizer.atomize(val[key], indent_level+1))
+					key_a = str(Beautifier.beautify(key, indent_level+1))
+					val_a = str(Beautifier.beautify(val[key], indent_level+1))
 					for i in range(indent_level):
-						s += Atomizer.indent
-					s += key_a + Atomizer.dict_sep + val_a + Atomizer.list_sep + "\n"
+						s += Beautifier.indent
+					s += key_a + Beautifier.dict_sep + val_a + Beautifier.list_sep + "\n"
 				else:
-					key_a = str(Atomizer.atomize(key, indent_level+1))
-					val_a = str(Atomizer.atomize(val[key], indent_level+1))
+					key_a = str(Beautifier.beautify(key, indent_level+1))
+					val_a = str(Beautifier.beautify(val[key], indent_level+1))
 					for i in range(indent_level):
-						s += Atomizer.indent
-					s += key_a + Atomizer.dict_sep + val_a + "\n"
+						s += Beautifier.indent
+					s += key_a + Beautifier.dict_sep + val_a + "\n"
 
 			for i in range(indent_level-1):
-				s += Atomizer.indent
-			s += Atomizer.dict_end
+				s += Beautifier.indent
+			s += Beautifier.dict_end
 
 			return s
 
@@ -100,111 +103,83 @@ class Atomizer:
 
 			for i in xrange(l):
 				if i<l-1:
-					s += str(Atomizer.atomize(val[i])) + Atomizer.list_sep
+					s += str(Beautifier.beautify(val[i])) + Beautifier.list_sep
 				else:
-					s += str(Atomizer.atomize(val[i]))
+					s += str(Beautifier.beautify(val[i]))
 
 			s += ")"
 
 			return s
 
-	@staticmethod
-	def order_dict(d, *keys): # incomplete
-
-		if type(d)!=dict:
-			print "ERROR [Atomizer.order_dict()]: d is not a dictionary"
-		else:
-			
-			if indent_level > 1:
-				s = "\n"
-			else:
-				s = ""
-
-			for i in range(indent_level-1):
-				s += "  "
-			s += Atomizer.dict_begin
-			s += "\n"
-
-			keys = val.keys()
-			l = len(keys)
-
-			for i in range(l):
-
-				key = keys[i]
-
-				if i<l-1:
-					key_a = Atomizer.atomize(key, indent_level+1)
-					val_a = Atomizer.atomize(val[key], indent_level+1)
-					for i in range(indent_level):
-						s += Atomizer.indent
-					s += key_a + Atomizer.dict_sep + val_a + Atomizer.list_sep + "\n"
-				else:
-					key_a = Atomizer.atomize(key, indent_level+1)
-					val_a = Atomizer.atomize(val[key], indent_level+1)
-					for i in range(indent_level):
-						s += Atomizer.indent
-					s += key_a + Atomizer.dict_sep + val_a + "\n"
-
-			for i in range(indent_level-1):
-				s += Atomizer.indent
-			s += Atomizer.dict_end
-
-			return s
-
-
-class Parser:
 
 	@staticmethod
-	def parse(lines):
+	def removeEmptyLines(Lines):
 
-		currentObject = None
-		objects = []
+		lines = list(Lines)
 
 		for line in lines:
+			if line=='\n' or line=='':
+				lines.remove(line)
 
-			atom = line.strip()
-			
-			if atom[0] == Atomizer.dict_begin:
-				currentObject = 'dict'
-				d = atom[0]
-
-			elif atom[0] == Atomizer.dict_end:
-				currentObject = None
-				d += atom[0]
-				d = eval(d)
-				objects.append(d)
-
-			if currentObject=='dict':
-				d += line + "\n"
-			elif currentObject==None:
-				objects.append(eval(line))
-
+		return lines
 
 	@staticmethod
-	def make(*objects):
+	def readFile(file_object):
 
-		str_lines = ""
+		lines = list(file_object.readlines())
+		lines = Beautifier.removeEmptyLines(lines)
 
-		for obj in objects:
-			print type(obj), obj
-			str_lines += str(Atomizer.atomize(obj)) + "\n"
+		file_string = ""
 
-		return str_lines
+		for line in lines:
+			file_string += str(line)
+
+		return file_string
+
+	@staticmethod
+	def load(file_object):
+		return eval(Beautifier.readFile(file_object))
+
+	@staticmethod
+	def dump(obj, file_object):
+		bObj = Beautifier.beautify(obj)
+		file_object.write(bObj)
 
 
-a = Atomizer.atomize(1)
-b = Atomizer.atomize("asg")
-c = Atomizer.atomize([1,6,7])
-d = {1:3, "asd":93, 64:[1,6]}
+a = Beautifier.beautify(1)
+b = Beautifier.beautify("asg")
+c = Beautifier.beautify([1,6,7])
+d = Beautifier.beautify({1:3, "asd":93, 64:[1,6]})
 d2 = {"monkey":36, "banana":42}
-d['hey'] = d2
 d3 = {'name':'naveen', 'age':21, 'profession':'student', 'organization':'BITS Pilani'}
-e = Atomizer.atomize((8,9,'jhfg'))
+e = Beautifier.beautify((8+9J))
+f = Beautifier.beautify((1,5,76))
 
-D = eval(Atomizer.atomize(d))
-L = eval(Atomizer.atomize([1,5,7]))
+L = eval(Beautifier.beautify([1,5,7]))
 
+parsedObjects = [a,b,c,d,e,f]
 
-strlines = Parser.make(a,b,c,d,e)
-print "------------------------"
-print strlines
+A = {'age': 27,
+ 'name': 'Joe',
+ 'numbers': [1,
+             2, 
+             3,
+             4,
+             5],
+ 'subdict': {
+             'first': 1, 
+             'second': 2,
+             'd': {1:3, "asd":93, 64:[1,6]},
+              'third': 3
+             }
+}
+
+# fil = open("demo.sdb", 'w+')
+# Beautifier.write(A, fil)
+# fil.close()
+
+sdb = Beautifier.load(open("demo.sdb"))
+print sdb
+print type(sdb)
+
+Beautifier.dump(sdb, open("demo2.sdb",'w'))
